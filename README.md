@@ -16,3 +16,12 @@
 - 👤 [Explore the creator's projects](https://omgithub.com/lol33439843).
 - 🌍 [Create with OMGithub](https://omgithub.com).
 <!-- omgithub:readme:end -->
+
+## Neon Defense
+
+A polished 2D tower defense simulator built with vanilla HTML, CSS and Canvas 2D — no build step or dependencies.
+
+- **20 waves** plus an endless mode, five tower types and three upgrade levels each.
+- **Desktop and touch** controls, procedural WebAudio sound, pause/help, speed controls and a persisted best score.
+- **Run it locally** with `python3 -m http.server 3000`, then open <http://localhost:3000>.
+- **Controls:** `1`–`5` select a tower, click a free cell to build, click a tower to upgrade or sell, `Space`/`P` pause, `M` mute, `Esc` cancel. On touch, tap a cell to preview and confirm with **BUILD**.

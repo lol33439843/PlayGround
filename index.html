@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05080f">
+<meta name="description" content="Neon Defense — a polished 2D tower defense simulator. Build towers, freeze swarms and hold the core for 20 waves.">
+<title>Neon Defense — 2D Tower Defense Simulator</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070d1a'/%3E%3Cpath d='M16 5l9 5.5v11L16 27l-9-5.5v-11z' fill='none' stroke='%234de8ff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ff4d9d'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <header class="hud">
+    <div class="brand" aria-label="Neon Defense">
+      <span class="brand-mark"></span>
+      <span class="brand-text">NEON<strong>DEFENSE</strong></span>
+    </div>
+
+    <div class="stats">
+      <div class="stat" title="Core integrity">
+        <span class="stat-ico heart" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-9.3-9.1C1.3 8.3 3.2 5 6.6 5c2 0 3.5 1.1 4.4 2.5h2C13.9 6.1 15.4 5 17.4 5c3.4 0 5.3 3.3 3.9 6.9C19.5 16.3 12 21 12 21z"/></svg>
+        </span>
+        <span class="stat-body"><b id="livesVal">20</b><i>LIVES</i></span>
+      </div>
+      <div class="stat" title="Gold">
+        <span class="stat-ico gold" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2l8 5v10l-8 5-8-5V7z"/><path d="M12 7l4 2.5v5L12 17l-4-2.5v-5z" class="inner"/></svg>
+        </span>
+        <span class="stat-body"><b id="goldVal">300</b><i>GOLD</i></span>
+      </div>
+      <div class="stat" title="Wave">
+        <span class="stat-ico wave" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 12c2-5 4-5 6 0s4 5 6 0 4-5 6 0"/></svg>
+        </span>
+        <span class="stat-body"><b id="waveVal">1/20</b><i>WAVE</i></span>
+      </div>
+      <div class="stat score-stat" title="Score">
+        <span class="stat-body"><b id="scoreVal">0</b><i>SCORE</i></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="icon-btn speed" id="speedBtn" type="button" title="Game speed" aria-label="Game speed">1×</button>
+      <button class="icon-btn" id="pauseBtn" type="button" title="Pause (Space)" aria-label="Pause">
+        <svg viewBox="0 0 24 24"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>
+      </button>
+      <button class="icon-btn" id="soundBtn" type="button" title="Sound (M)" aria-label="Toggle sound">♪</button>
+      <button class="icon-btn" id="helpBtn" type="button" title="How to play" aria-label="How to play">?</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="game" width="960" height="576" aria-label="Tower defense battlefield"></canvas>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+    <div class="wave-banner" id="waveBanner" aria-hidden="true"></div>
+    <div class="hint" id="buildHint" hidden></div>
+
+    <div class="place-bar" id="placeBar" hidden>
+      <span id="placeText">Place tower</span>
+      <button id="placeConfirm" type="button">BUILD</button>
+      <button id="placeCancel" type="button">CANCEL</button>
+    </div>
+
+    <button class="wave-btn" id="waveBtn" type="button" aria-label="Send the next wave">
+      <svg class="wave-ring" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
+        <circle class="ring-fill" id="waveRing" cx="50" cy="50" r="44"></circle>
+      </svg>
+      <span class="wave-title" id="waveTitle">SEND WAVE</span>
+      <span class="wave-sub" id="waveSub">15s</span>
+    </button>
+
+    <section class="tower-panel" id="towerPanel" hidden aria-label="Selected tower">
+      <div class="tp-head">
+        <span class="tp-dot" aria-hidden="true"></span>
+        <div class="tp-id">
+          <span class="tp-name" id="tpName">Pulse</span>
+          <span class="tp-level" id="tpLevel">LEVEL 1</span>
+        </div>
+        <button class="tp-close" id="tpClose" type="button" aria-label="Close tower panel">×</button>
+      </div>
+      <div class="tp-stats">
+        <div><span>DMG</span><b id="tpDmg">14</b></div>
+        <div><span>RANGE</span><b id="tpRange">2.8</b></div>
+        <div><span>RATE</span><b id="tpRate">1.8</b></div>
+        <div><span>DPS</span><b id="tpDps">25</b></div>
+      </div>
+      <div class="tp-meta">
+        <span id="tpSpecial">Single target</span>
+        <span>KILLS <b id="tpKills">0</b></span>
+      </div>
+      <div class="tp-actions">
+        <button class="tp-upgrade" id="upgradeBtn" type="button">UPGRADE · 45g</button>
+        <button class="tp-sell" id="sellBtn" type="button">SELL +42g</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="dock">
+    <div class="dock-inner" id="towerCards"></div>
+  </footer>
+</div>
+
+<!-- Title -->
+<div class="overlay title-overlay" id="titleScreen">
+  <div class="title-card">
+    <div class="kicker">2D TOWER DEFENSE SIMULATOR</div>
+    <h1>NEON<br><span>DEFENSE</span></h1>
+    <p class="tagline">The swarm is coming. Build, upgrade and freeze your way through 20 waves. Protect the core.</p>
+    <div class="title-badges">
+      <span><b>20</b> WAVES</span>
+      <span><b>5</b> TOWERS</span>
+      <span><b>3</b> UPGRADES</span>
+    </div>
+    <div class="title-actions">
+      <button class="primary" id="startBtn" type="button">START DEFENSE</button>
+      <button class="ghost" id="howBtn" type="button">HOW TO PLAY</button>
+    </div>
+    <div class="best-line">BEST SCORE <b id="bestTitle">0</b></div>
+  </div>
+</div>
+
+<!-- Pause -->
+<div class="overlay" id="pauseScreen" hidden>
+  <div class="modal small">
+    <div class="kicker">SYSTEM HOLD</div>
+    <h2>PAUSED</h2>
+    <p>Take a breath. The swarm will wait.</p>
+    <div class="modal-actions">
+      <button class="primary" id="resumeBtn" type="button">RESUME</button>
+      <button class="ghost" id="pauseRestart" type="button">RESTART</button>
+      <button class="ghost" id="pauseMenu" type="button">MAIN MENU</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help -->
+<div class="overlay" id="helpScreen" hidden>
+  <div class="modal help-modal">
+    <div class="kicker">FIELD MANUAL</div>
+    <h2>HOW TO PLAY</h2>
+    <div class="help-grid">
+      <div class="help-step">
+        <b>01</b>
+        <div><strong>Build</strong><p>Pick a tower from the dock, then tap any free cell beside the glowing route.</p></div>
+      </div>
+      <div class="help-step">
+        <b>02</b>
+        <div><strong>Upgrade</strong><p>Tap a built tower to inspect it. Spend gold on three upgrade levels or sell it back.</p></div>
+      </div>
+      <div class="help-step">
+        <b>03</b>
+        <div><strong>Hold the line</strong><p>Leaks cost lives. Call waves early for bonus gold. Clear all 20 waves to win.</p></div>
+      </div>
+    </div>
+    <div class="help-keys">
+      <span><kbd>1</kbd>–<kbd>5</kbd> select tower</span>
+      <span><kbd>Space</kbd> pause</span>
+      <span><kbd>Esc</kbd> cancel</span>
+      <span><kbd>M</kbd> mute</span>
+    </div>
+    <div class="modal-actions">
+      <button class="primary" id="helpClose" type="button">GOT IT</button>
+    </div>
+  </div>
+</div>
+
+<!-- Victory / defeat -->
+<div class="overlay" id="endScreen" hidden>
+  <div class="modal end-modal">
+    <div class="kicker" id="endKicker">SIMULATION COMPLETE</div>
+    <h2 id="endTitle">VICTORY</h2>
+    <p id="endSub">You held the core through 20 waves.</p>
+    <div class="end-stats">
+      <div><span>SCORE</span><b id="endScore">0</b></div>
+      <div><span>WAVE</span><b id="endWave">0</b></div>
+      <div><span>KILLS</span><b id="endKills">0</b></div>
+      <div><span>BEST</span><b id="endBest">0</b></div>
+    </div>
+    <div class="modal-actions">
+      <button class="primary" id="againBtn" type="button">PLAY AGAIN</button>
+      <button class="ghost" id="endlessBtn" type="button">ENDLESS MODE</button>
+      <button class="ghost" id="menuBtn" type="button">MAIN MENU</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/game.js"></script>
+</body>
+</html>
